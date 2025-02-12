@@ -66,6 +66,7 @@ def move_files(source_path, target_path):
     file_names = os.listdir(str(source_path))
     for fname in file_names:
         shutil.move(str(source_path/fname), str(target_path/fname))
+    print(f'Moved files from {str(source_path)} to {str(target_path)}')
 
 def delete_files(dir_path):
     fnames = sorted(glob.glob(str(dir_path)))
