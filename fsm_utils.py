@@ -15,7 +15,7 @@ B = L * np.cos(30*u.degree) # baseline distance of three piezos
 max_stroke = 10*u.um
 max_voltage = 100
 D_per_V = max_stroke/max_voltage
-D_per_V = 0.08*u.um
+D_per_V = 0.1*u.um
 
 def get_A(alpha, Z):
     return (Z + 2./3. * B * alpha).to(u.m)
