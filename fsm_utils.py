@@ -26,6 +26,26 @@ def get_B(alpha, beta, Z):
 def get_C(alpha, beta, Z):
     return (Z - 1./3. * B * alpha - 1./2. * L * beta).to(u.m)
 
+def get_fsm_disps(tip, tilt, dZ=0*u.um, verbose=False, rot=-60.435*u.degree):
+    tip = tip.to_value(u.radian)/2 # divide by two for reflection
+    tilt = tilt.to_value(u.radian)/2
+
+    if rot is not None:
+        tt = np.array([tip, tilt])
+        Mrot = np.array([
+            [np.cos(rot), -np.sin(rot)],
+            [np.sin(rot), np.cos(rot)],
+        ])
+        ttrot = Mrot@tt
+        tip, tilt = ttrot[0], ttrot[1]
+
+    dA = get_A(tip, dZ).to_value(u.um)
+    dB = get_B(tip, tilt, dZ).to_value(u.um)
+    dC = get_C(tip, tilt, dZ).to_value(u.um)
+    if verbose: print(f'Displacements: A = {dA:.2e}, {dB:.2e}, {dC:.2e}. ')
+
+    return np.array([[dA, dB, dC]]).T
+
 def get_fsm_volts(tip, tilt, dZ=0*u.um, verbose=False, rot=-60.435*u.degree):
     tip = tip.to_value(u.radian)/2 # divide by two for reflection
     tilt = tilt.to_value(u.radian)/2
