@@ -17,14 +17,47 @@ max_voltage = 100
 D_per_V = max_stroke/max_voltage
 D_per_V = 0.1*u.um
 
+L = 12e-3
+
+# def get_A(alpha, Z):
+#     return (Z + 2./3. * B * alpha).to(u.m)
+
+# def get_B(alpha, beta, Z):
+#     return (Z + 0.5 * L * beta - 1./3. * B * alpha).to(u.m)
+
+# def get_C(alpha, beta, Z):
+#     return (Z - 1./2. * L * beta - 1./3. * B * alpha).to(u.m)
+
 def get_A(alpha, Z):
-    return (Z + 2./3. * B * alpha).to(u.m)
+    return Z + 2/3 * B * alpha
 
 def get_B(alpha, beta, Z):
-    return (0.5 * L * beta + Z - 1./3. * B * alpha).to(u.m)
+    return Z + L/2 * beta - B/3 * alpha
 
 def get_C(alpha, beta, Z):
-    return (Z - 1./3. * B * alpha - 1./2. * L * beta).to(u.m)
+    return Z - L/2 * beta - B/3 * alpha
+
+def ttp_to_disps(ttp):
+
+    '''
+    Transforms ttp into relative displacements of 3 actuators.
+    The small angle approximation is implicaitly made for this 
+    transform. 
+    '''
+
+    ttp = np.array(ttp)
+    if ttp.shape[0]==2:
+        ttp = np.concatenate([ttp, [0]])
+
+    M = np.array([
+        [   0,       L/np.sqrt(3),  1],
+        [-L/2,  -L/(2*np.sqrt(3)),  1],
+        [ L/2,  -L/(2*np.sqrt(3)),  1],
+    ])
+
+    disps = M.dot(ttp)
+
+    return disps
 
 def get_fsm_disps(tip, tilt, dZ=0*u.um, verbose=False, rot=-60.435*u.degree):
     tip = tip.to_value(u.radian)/2 # divide by two for reflection
