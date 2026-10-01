@@ -10,12 +10,12 @@ from purepyindi import INDIClient
 import purepyindi2
 from purepyindi2 import IndiClient
 
-L = 12*u.mm # distance between FSM piezo actuators
-B = L * np.cos(30*u.degree) # baseline distance of three piezos
-max_stroke = 10*u.um
-max_voltage = 100
-D_per_V = max_stroke/max_voltage
-D_per_V = 0.1*u.um
+# L = 12*u.mm # distance between FSM piezo actuators
+# B = L * np.cos(30*u.degree) # baseline distance of three piezos
+# max_stroke = 10*u.um
+# max_voltage = 100
+# D_per_V = max_stroke/max_voltage
+# D_per_V = 0.1*u.um
 
 L = 12e-3
 
@@ -27,6 +27,13 @@ L = 12e-3
 
 # def get_C(alpha, beta, Z):
 #     return (Z - 1./2. * L * beta - 1./3. * B * alpha).to(u.m)
+
+
+L = 12e-3 # distance between FSM piezo actuators
+B = L * np.cos(30 * np.pi/180) # baseline distance of three piezos
+max_stroke = 10e-3
+max_voltage = 100
+D_per_V = max_stroke/max_voltage
 
 def get_A(alpha, Z):
     return Z + 2/3 * B * alpha
@@ -59,12 +66,13 @@ def ttp_to_disps(ttp):
 
     return disps
 
-def get_fsm_disps(tip, tilt, dZ=0*u.um, verbose=False, rot=-60.435*u.degree):
-    tip = tip.to_value(u.radian)/2 # divide by two for reflection
-    tilt = tilt.to_value(u.radian)/2
+def get_fsm_disps(tip, tilt, dZ=0, verbose=False, rot=-60.435):
+    # tip = tip.to_value(u.radian)/2 # divide by two for reflection
+    # tilt = tilt.to_value(u.radian)/2
 
     if rot is not None:
         tt = np.array([tip, tilt])
+        rot = rot * np.pi/180
         Mrot = np.array([
             [np.cos(rot), -np.sin(rot)],
             [np.sin(rot), np.cos(rot)],
@@ -79,12 +87,13 @@ def get_fsm_disps(tip, tilt, dZ=0*u.um, verbose=False, rot=-60.435*u.degree):
 
     return np.array([[dA, dB, dC]]).T
 
-def get_fsm_volts(tip, tilt, dZ=0*u.um, verbose=False, rot=-60.435*u.degree):
-    tip = tip.to_value(u.radian)/2 # divide by two for reflection
-    tilt = tilt.to_value(u.radian)/2
+def get_fsm_volts(tip, tilt, dZ=0, verbose=False, rot=-60.435):
+    # tip = tip.to_value(u.radian)/2 # divide by two for reflection
+    # tilt = tilt.to_value(u.radian)/2
 
     if rot is not None:
         tt = np.array([tip, tilt])
+        rot = rot * np.pi/180
         Mrot = np.array([
             [np.cos(rot), -np.sin(rot)],
             [np.sin(rot), np.cos(rot)],
@@ -97,12 +106,17 @@ def get_fsm_volts(tip, tilt, dZ=0*u.um, verbose=False, rot=-60.435*u.degree):
     dC = get_C(tip, tilt, dZ)
     if verbose: print(f'Displacements: A = {dA:.2e}, {dB:.2e}, {dC:.2e}. ')
 
-    dvA = (dA/D_per_V).decompose().value
-    dvB = (dB/D_per_V).decompose().value
-    dvC = (dC/D_per_V).decompose().value
+    dvA = dA/D_per_V
+    dvB = dB/D_per_V
+    dvC = dC/D_per_V
     if verbose: print(f'Delta Voltages: A = {dvA:.2f}, B = {dvB:.2f}, C = {dvC:.2f}. ')
 
     return np.array([[dvA, dvB, dvC]]).T
+
+def power_fsm(state, client, delay=1.0):
+    client.wait_for_properties(['pdu1.fsmCtrl'])
+    client['pdu1.fsmCtrl.target'] = state
+    time.sleep(delay)
 
 def set_fsm_mod_amp(amp, client, process_name='fsmModulator', delay=0.25):
     client.wait_for_properties([f'{process_name}.amp'])
