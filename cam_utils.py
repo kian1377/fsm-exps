@@ -29,6 +29,13 @@ class CAM:
 
         self.cam_stream = ImageStream(self.channel)
 
+    def get_roi_center(self, client):
+        xc = client[f'{self.channel}.roi_region_x.current']
+        yc = client[f'{self.channel}.roi_region_y.current']
+        # h = client[f'{self.channel}.roi_region_h.current'] = npix
+        # w = client[f'{self.channel}.roi_region_w.current'] = npix
+        return xc, yc
+
     def set_exptime(self, exptime, client, delay=0.25):
         client.wait_for_properties([f'{self.channel}.exptime',])
         client[f'{self.channel}.exptime.target'] = exptime
